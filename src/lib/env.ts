@@ -23,7 +23,8 @@ const envSchema = z.object({
 
   OTP_EXPIRY_MINUTES: z.coerce.number().int().positive().default(10),
   OTP_MAX_ATTEMPTS: z.coerce.number().int().positive().default(5),
-  OTP_RESEND_COOLDOWN_SECONDS: z.coerce.number().int().positive().default(60),
+  // 0 allowed for tests; production should use a positive cooldown.
+  OTP_RESEND_COOLDOWN_SECONDS: z.coerce.number().int().min(0).default(60),
   OTP_RATE_LIMIT_PER_HOUR: z.coerce.number().int().positive().default(10),
 
   MAIL_PROVIDER: z.enum(["console", "smtp"]).default("console"),

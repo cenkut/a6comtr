@@ -1,5 +1,5 @@
-// A6.com.tr — Production schema foundation
-// Domain models grow phase-by-phase. FAZ 0: connectivity + baseline only.
+// A6.com.tr — Production schema
+// Domain models grow phase-by-phase.
 
 generator client {
   provider = "prisma-client-js"
@@ -19,4 +19,61 @@ model SchemaMeta {
   updatedAt DateTime @updatedAt
 
   @@map("schema_meta")
+}
+
+// ---------------------------------------------------------------------------
+// Authentication (FAZ 1)
+// ---------------------------------------------------------------------------
+
+model User {
+  id              String    @id @default(cuid())
+  email           String    @unique
+  emailVerifiedAt DateTime?
+  name            String?
+  isPlatformAdmin Boolean   @default(false)
+  lastLoginAt     DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  sessions Session[]
+
+  @@index([email])
+  @@map("users")
+}
+
+/// One-time password challenge. Code is stored hashed, never plaintext.
+model OtpChallenge {
+  id          String    @id @default(cuid())
+  email       String
+  codeHash    String
+  expiresAt   DateTime
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(5)
+  consumedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  requestIp   String?
+  userAgent   String?
+
+  @@index([email, createdAt])
+  @@index([email, consumedAt])
+  @@map("otp_challenges")
+}
+
+/// Server-side session. Cookie holds opaque token; DB stores hash for revoke.
+model Session {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+  lastSeenAt DateTime  @default(now())
+  userAgent  String?
+  ipAddress  String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
 }
