@@ -95,6 +95,11 @@ export async function createCompany(input: {
 }): Promise<CompanyAdminDto> {
   await requireOrganizationAccess(input.userId, input.organizationId, "EDITOR");
 
+  const { requireCanCreateCompany } = await import(
+    "@/modules/subscription/subscription.service"
+  );
+  await requireCanCreateCompany(input.organizationId);
+
   const name = input.name.trim();
   if (name.length < 2 || name.length > 120) {
     throw new AppError(
@@ -118,6 +123,15 @@ export async function createCompany(input: {
       status: "DRAFT",
     },
   });
+
+  const { writeAuditLog } = await import("@/modules/audit/audit.service");
+  void writeAuditLog({
+    action: "COMPANY_CREATED",
+    actorUserId: input.userId,
+    organizationId: input.organizationId,
+    companyId: company.id,
+    metadata: { name: company.name, slug: company.slug },
+  }).catch(() => undefined);
 
   return toCompanyAdminDto(company);
 }

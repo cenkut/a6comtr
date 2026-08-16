@@ -58,8 +58,28 @@ export async function createOrganization(input: {
         role: "OWNER",
       },
     });
+    // Trial subscription foundation (FAZ 9)
+    const expiresAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000);
+    await tx.subscription.create({
+      data: {
+        organizationId: organization.id,
+        packageCode: "TRIAL",
+        status: "TRIALING",
+        expiresAt,
+        maxCompanies: 1,
+        maxUsers: 3,
+      },
+    });
     return organization;
   });
+
+  const { writeAuditLog } = await import("@/modules/audit/audit.service");
+  void writeAuditLog({
+    action: "COMPANY_CREATED",
+    actorUserId: input.userId,
+    organizationId: org.id,
+    metadata: { organizationName: org.name },
+  }).catch(() => undefined);
 
   return {
     id: org.id,

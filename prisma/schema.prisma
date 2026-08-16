@@ -37,6 +37,7 @@ model User {
 
   sessions    Session[]
   memberships Membership[]
+  auditLogs   AuditLog[] @relation("AuditActor")
 
   @@index([email])
   @@map("users")
@@ -104,8 +105,10 @@ model Organization {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  memberships Membership[]
-  companies   Company[]
+  memberships  Membership[]
+  companies    Company[]
+  subscription Subscription?
+  auditLogs    AuditLog[]
 
   @@map("organizations")
 }
@@ -388,4 +391,65 @@ model CustomField {
 
   @@index([companyId, sortOrder])
   @@map("custom_fields")
+}
+
+// ---------------------------------------------------------------------------
+// Platform admin + audit (FAZ 8)
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id             String   @id @default(cuid())
+  actorUserId    String?
+  organizationId String?
+  companyId      String?
+  action         String
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  actor        User?         @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([organizationId, createdAt])
+  @@index([companyId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+// ---------------------------------------------------------------------------
+// Subscription foundation (FAZ 9)
+// ---------------------------------------------------------------------------
+
+enum PackageCode {
+  TRIAL
+  BASIC
+  BUSINESS
+  AGENCY
+}
+
+enum SubscriptionStatus {
+  TRIALING
+  ACTIVE
+  PAST_DUE
+  CANCELED
+  EXPIRED
+}
+
+model Subscription {
+  id             String             @id @default(cuid())
+  organizationId String             @unique
+  packageCode    PackageCode        @default(TRIAL)
+  status         SubscriptionStatus @default(TRIALING)
+  startsAt       DateTime           @default(now())
+  expiresAt      DateTime?
+  maxCompanies   Int                @default(1)
+  maxUsers       Int                @default(3)
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@index([packageCode])
+  @@map("subscriptions")
 }
