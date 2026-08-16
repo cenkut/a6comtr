@@ -1,6 +1,7 @@
 import type { Company, CompanyStatus, Prisma } from "@prisma/client";
 import { db } from "@/lib/db";
 import { AppError } from "@/lib/errors";
+import { assertSafeHttpUrl } from "@/lib/security";
 import { slugify, withUniqueSuffix } from "@/lib/slug";
 import { requireCompanyAccess, requireOrganizationAccess } from "@/modules/authz/access";
 import { randomBytes } from "node:crypto";
@@ -271,16 +272,8 @@ async function uniqueCompanySlug(name: string): Promise<string> {
 function normalizeWebsite(value?: string | null): string | null {
   if (value === undefined) return null;
   if (value === null || value.trim() === "") return null;
-  let url = value.trim();
-  if (!/^https?:\/\//i.test(url)) {
-    url = `https://${url}`;
-  }
   try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      throw new Error("bad protocol");
-    }
-    return parsed.toString();
+    return assertSafeHttpUrl(value);
   } catch {
     throw new AppError("VALIDATION", "Geçerli bir web sitesi girin.", 400);
   }

@@ -96,6 +96,13 @@ scripts/         # Ops scripts (db check, …)
 
 See `plan.md` for the full production roadmap (FAZ 0 → FAZ 12).
 
+## Production
+
+- Operations guide: [`docs/production.md`](docs/production.md)
+- K8s examples (no secrets): [`deploy/k8s/`](deploy/k8s/)
+
+Platform admin UI: `/admin` (requires `isPlatformAdmin` or `PLATFORM_ADMIN_EMAILS`).
+
 ## License
 
 Proprietary — all rights reserved.

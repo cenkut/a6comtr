@@ -1,6 +1,7 @@
 import type { Prisma, SocialLink, SocialPlatform } from "@prisma/client";
 import { db } from "@/lib/db";
 import { AppError } from "@/lib/errors";
+import { assertSafeHttpUrl } from "@/lib/security";
 import { requireCompanyAccess } from "@/modules/authz/access";
 
 export type SocialLinkDto = {
@@ -115,15 +116,8 @@ function emptyToNull(value?: string | null): string | null {
 }
 
 function normalizeHttpUrl(value: string): string {
-  let url = value.trim();
-  if (!url) throw new AppError("VALIDATION", "URL gerekli.", 400);
-  if (!/^https?:\/\//i.test(url)) url = `https://${url}`;
   try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      throw new Error("bad");
-    }
-    return parsed.toString();
+    return assertSafeHttpUrl(value);
   } catch {
     throw new AppError("VALIDATION", "Geçerli bir URL girin.", 400);
   }
