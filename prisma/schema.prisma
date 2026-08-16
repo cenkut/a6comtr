@@ -156,9 +156,109 @@ model Company {
   updatedAt           DateTime      @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  locations    CompanyLocation[]
+  socialLinks  SocialLink[]
+  customFields CustomField[]
 
   @@index([organizationId])
   @@index([status])
   @@index([slug])
   @@map("companies")
+}
+
+// ---------------------------------------------------------------------------
+// Company builder (FAZ 3)
+// ---------------------------------------------------------------------------
+
+enum LocationType {
+  HEADQUARTERS
+  BRANCH
+  STORE
+  WAREHOUSE
+  FACTORY
+  SERVICE
+  OTHER
+}
+
+enum SocialPlatform {
+  INSTAGRAM
+  LINKEDIN
+  FACEBOOK
+  X
+  YOUTUBE
+  TIKTOK
+  OTHER
+}
+
+enum CustomFieldType {
+  TEXT
+  PHONE
+  EMAIL
+  URL
+  NUMBER
+  DATE
+}
+
+model CompanyLocation {
+  id                 String       @id @default(cuid())
+  companyId          String
+  type               LocationType @default(OTHER)
+  name               String
+  addressLine        String?
+  district           String?
+  city               String?
+  postalCode         String?
+  country            String       @default("TR")
+  latitude           Float?
+  longitude          Float?
+  phone              String?
+  email              String?
+  contactPersonName  String?
+  contactPersonPhone String?
+  workingHours       String?
+  description        String?
+  sortOrder          Int          @default(0)
+  isVisible          Boolean      @default(true)
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, sortOrder])
+  @@map("company_locations")
+}
+
+model SocialLink {
+  id        String         @id @default(cuid())
+  companyId String
+  platform  SocialPlatform @default(OTHER)
+  label     String?
+  url       String
+  sortOrder Int            @default(0)
+  isVisible Boolean        @default(true)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, sortOrder])
+  @@map("social_links")
+}
+
+model CustomField {
+  id        String          @id @default(cuid())
+  companyId String
+  section   String          @default("general")
+  label     String
+  value     String
+  type      CustomFieldType @default(TEXT)
+  sortOrder Int             @default(0)
+  isVisible Boolean         @default(true)
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, sortOrder])
+  @@map("custom_fields")
 }
