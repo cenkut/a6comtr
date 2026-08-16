@@ -106,6 +106,14 @@ export async function resolveQrScan(
     },
   });
 
+  // Analytics event (best-effort; do not fail redirect)
+  const { trackEvent } = await import("@/modules/analytics/analytics.service");
+  void trackEvent({
+    companyId: qr.companyId,
+    qrCodeId: qr.id,
+    type: "QR_SCAN",
+  }).catch(() => undefined);
+
   return {
     kind: "redirect",
     slug: qr.company.slug,

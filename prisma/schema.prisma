@@ -156,17 +156,53 @@ model Company {
   updatedAt           DateTime      @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  locations    CompanyLocation[]
-  socialLinks  SocialLink[]
-  customFields CustomField[]
-  qrCodes      QRCode[]
-  theme        CompanyProfileTheme?
-  sections     CompanyProfileSection[]
+  locations       CompanyLocation[]
+  socialLinks     SocialLink[]
+  customFields    CustomField[]
+  qrCodes         QRCode[]
+  theme           CompanyProfileTheme?
+  sections        CompanyProfileSection[]
+  analyticsEvents AnalyticsEvent[]
 
   @@index([organizationId])
   @@index([status])
   @@index([slug])
   @@map("companies")
+}
+
+// ---------------------------------------------------------------------------
+// Analytics (FAZ 7)
+// ---------------------------------------------------------------------------
+
+enum AnalyticsEventType {
+  QR_SCAN
+  PROFILE_VIEW
+  PHONE_CLICK
+  WHATSAPP_CLICK
+  EMAIL_CLICK
+  WEBSITE_CLICK
+  DIRECTIONS_CLICK
+  VCARD_DOWNLOAD
+  DOCUMENT_CLICK
+  SOCIAL_CLICK
+}
+
+model AnalyticsEvent {
+  id         String             @id @default(cuid())
+  companyId  String
+  qrCodeId   String?
+  type       AnalyticsEventType
+  timestamp  DateTime           @default(now())
+  referrer   String?
+  userAgent  String?
+  deviceType String?
+  country    String?
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId, timestamp])
+  @@index([companyId, type, timestamp])
+  @@map("analytics_events")
 }
 
 // ---------------------------------------------------------------------------

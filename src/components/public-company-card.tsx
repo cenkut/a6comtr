@@ -6,6 +6,7 @@ import {
   formatWhatsAppUrl,
 } from "@/modules/company/public-profile.service";
 import type { ProfileSectionKey } from "@prisma/client";
+import { AnalyticsBeacon } from "@/components/analytics-beacon";
 
 export function PublicCompanyCard({
   profile,
@@ -26,21 +27,32 @@ export function PublicCompanyCard({
     ? formatDirectionsUrl(directionsTarget)
     : null;
 
-  const actions: { label: string; href: string; external?: boolean }[] = [];
+  const actions: {
+    label: string;
+    href: string;
+    external?: boolean;
+    event: string;
+  }[] = [];
   if (profile.primaryPhone) {
-    actions.push({ label: "Ara", href: formatTelUrl(profile.primaryPhone) });
+    actions.push({
+      label: "Ara",
+      href: formatTelUrl(profile.primaryPhone),
+      event: "PHONE_CLICK",
+    });
   }
   if (profile.whatsappPhone) {
     actions.push({
       label: "WhatsApp",
       href: formatWhatsAppUrl(profile.whatsappPhone),
       external: true,
+      event: "WHATSAPP_CLICK",
     });
   }
   if (profile.primaryEmail) {
     actions.push({
       label: "E-posta",
       href: formatMailtoUrl(profile.primaryEmail),
+      event: "EMAIL_CLICK",
     });
   }
   if (profile.website) {
@@ -48,6 +60,7 @@ export function PublicCompanyCard({
       label: "Web Sitesi",
       href: profile.website,
       external: true,
+      event: "WEBSITE_CLICK",
     });
   }
   if (directionsUrl) {
@@ -55,11 +68,13 @@ export function PublicCompanyCard({
       label: "Yol Tarifi",
       href: directionsUrl,
       external: true,
+      event: "DIRECTIONS_CLICK",
     });
   }
   actions.push({
     label: "Rehbere Kaydet",
     href: `/api/public/c/${profile.slug}/vcard`,
+    event: "VCARD_DOWNLOAD",
   });
 
   const hasCompanyInfo =
@@ -140,6 +155,7 @@ export function PublicCompanyCard({
             <a
               key={action.label}
               href={action.href}
+              data-a6-event={action.event}
               {...(action.external
                 ? { target: "_blank", rel: "noopener noreferrer" }
                 : {})}
@@ -272,6 +288,7 @@ export function PublicCompanyCard({
         color: theme.textColor,
       }}
     >
+      <AnalyticsBeacon slug={profile.slug} />
       {theme.showCover ? (
         profile.coverUrl ? (
           // eslint-disable-next-line @next/next/no-img-element

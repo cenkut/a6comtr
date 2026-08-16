@@ -3,13 +3,16 @@ import {
   buildVCard,
   getPublicProfileBySlug,
 } from "@/modules/company/public-profile.service";
+import { trackEvent } from "@/modules/analytics/analytics.service";
+import { db } from "@/lib/db";
+import { getUserAgent } from "@/lib/request";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 type Ctx = { params: Promise<{ slug: string }> };
 
-export async function GET(_req: NextRequest, ctx: Ctx) {
+export async function GET(req: NextRequest, ctx: Ctx) {
   const { slug } = await ctx.params;
   const result = await getPublicProfileBySlug(slug);
 
@@ -24,6 +27,19 @@ export async function GET(_req: NextRequest, ctx: Ctx) {
       { error: message, code: result.kind.toUpperCase() },
       { status: result.kind === "suspended" ? 403 : 404 },
     );
+  }
+
+  const company = await db.company.findUnique({
+    where: { slug },
+    select: { id: true },
+  });
+  if (company) {
+    void trackEvent({
+      companyId: company.id,
+      type: "VCARD_DOWNLOAD",
+      userAgent: getUserAgent(req),
+      referrer: req.headers.get("referer"),
+    }).catch(() => undefined);
   }
 
   const vcard = buildVCard(result.profile);
