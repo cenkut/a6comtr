@@ -159,11 +159,39 @@ model Company {
   locations    CompanyLocation[]
   socialLinks  SocialLink[]
   customFields CustomField[]
+  qrCodes      QRCode[]
 
   @@index([organizationId])
   @@index([status])
   @@index([slug])
   @@map("companies")
+}
+
+// ---------------------------------------------------------------------------
+// QR engine (FAZ 5)
+// ---------------------------------------------------------------------------
+
+enum QRCodeStatus {
+  ACTIVE
+  DISABLED
+}
+
+/// Permanent company QR. Encodes only A6 public URL, never company DB id.
+model QRCode {
+  id            String       @id @default(cuid())
+  companyId     String
+  publicCode    String       @unique
+  status        QRCodeStatus @default(ACTIVE)
+  scanCount     Int          @default(0)
+  lastScannedAt DateTime?
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+  @@index([publicCode])
+  @@map("qr_codes")
 }
 
 // ---------------------------------------------------------------------------
