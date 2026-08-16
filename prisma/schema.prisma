@@ -160,11 +160,74 @@ model Company {
   socialLinks  SocialLink[]
   customFields CustomField[]
   qrCodes      QRCode[]
+  theme        CompanyProfileTheme?
+  sections     CompanyProfileSection[]
 
   @@index([organizationId])
   @@index([status])
   @@index([slug])
   @@map("companies")
+}
+
+// ---------------------------------------------------------------------------
+// Card design (FAZ 6)
+// ---------------------------------------------------------------------------
+
+enum ButtonStyle {
+  SOLID
+  OUTLINE
+  SOFT
+}
+
+enum LogoShape {
+  SQUARE
+  ROUNDED
+  CIRCLE
+}
+
+enum ProfileSectionKey {
+  HERO
+  ABOUT
+  QUICK_ACTIONS
+  CONTACT
+  LOCATIONS
+  COMPANY_INFO
+  SOCIAL
+  DOCUMENTS
+  CUSTOM_FIELDS
+}
+
+model CompanyProfileTheme {
+  id              String      @id @default(cuid())
+  companyId       String      @unique
+  primaryColor    String      @default("#18181b")
+  backgroundColor String      @default("#ffffff")
+  textColor       String      @default("#18181b")
+  buttonStyle     ButtonStyle @default(SOLID)
+  logoShape       LogoShape   @default(ROUNDED)
+  showCover       Boolean     @default(true)
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@map("company_profile_themes")
+}
+
+model CompanyProfileSection {
+  id        String            @id @default(cuid())
+  companyId String
+  key       ProfileSectionKey
+  enabled   Boolean           @default(true)
+  sortOrder Int               @default(0)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, key])
+  @@index([companyId, sortOrder])
+  @@map("company_profile_sections")
 }
 
 // ---------------------------------------------------------------------------

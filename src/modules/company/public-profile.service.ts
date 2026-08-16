@@ -6,6 +6,11 @@ import type {
   CustomField,
   SocialLink,
 } from "@prisma/client";
+import {
+  getPublicDesign,
+  type SectionDto,
+  type ThemeDto,
+} from "@/modules/design/design.service";
 
 /** Public DTO — never include hidden/private fields. */
 export type PublicCompanyProfile = {
@@ -31,6 +36,8 @@ export type PublicCompanyProfile = {
   locations: PublicLocation[];
   socialLinks: PublicSocial[];
   customFields: PublicCustomField[];
+  theme: ThemeDto;
+  sections: SectionDto[];
 };
 
 export type PublicLocation = {
@@ -99,9 +106,11 @@ export async function getPublicProfileBySlug(
   if (company.status === "ARCHIVED") return { kind: "archived" };
   if (company.status !== "ACTIVE") return { kind: "not_found" };
 
+  const design = await getPublicDesign(company.id);
+
   return {
     kind: "ok",
-    profile: toPublicProfile(company),
+    profile: toPublicProfile(company, design.theme, design.sections),
   };
 }
 
@@ -111,6 +120,8 @@ function toPublicProfile(
     socialLinks: SocialLink[];
     customFields: CustomField[];
   },
+  theme: ThemeDto,
+  sections: SectionDto[],
 ): PublicCompanyProfile {
   return {
     slug: company.slug,
@@ -164,6 +175,8 @@ function toPublicProfile(
       value: f.value,
       type: f.type,
     })),
+    theme,
+    sections,
   };
 }
 
