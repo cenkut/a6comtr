@@ -1,36 +1,101 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# A6 — QR Dijital Şirket Kartviziti SaaS
 
-## Getting Started
+Production-oriented multi-tenant SaaS for permanent company QR digital business cards.
 
-First, run the development server:
+**Domain:** [a6.com.tr](https://a6.com.tr)
+
+## Stack
+
+| Layer | Choice |
+| --- | --- |
+| Framework | Next.js (App Router) + TypeScript |
+| UI | React + Tailwind CSS (mobile-first) |
+| Database | PostgreSQL |
+| ORM | Prisma |
+| Auth | Passwordless e-mail OTP (FAZ 1+) |
+| Runtime | Node.js 20+ / Docker |
+
+## Quick start (local)
+
+### Prerequisites
+
+- Node.js ≥ 20
+- Docker (PostgreSQL)
+
+### 1. Install
+
+```bash
+cp .env.example .env
+npm install
+```
+
+### 2. Database
+
+```bash
+docker compose up -d db
+npm run db:migrate
+npm run db:check
+```
+
+### 3. Run app
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### Scripts
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+| Script | Description |
+| --- | --- |
+| `npm run dev` | Next.js dev server |
+| `npm run build` | Production build |
+| `npm run start` | Production server |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript `--noEmit` |
+| `npm test` | Vitest unit tests |
+| `npm run db:migrate` | Prisma migrate (dev) |
+| `npm run db:migrate:deploy` | Prisma migrate (prod) |
+| `npm run db:check` | Database connectivity check |
+| `npm run db:seed` | **Dev-only** seed |
 
-## Learn More
+## Environment
 
-To learn more about Next.js, take a look at the following resources:
+Copy `.env.example` → `.env`. Never commit real secrets.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+GitHub Actions secrets for deploy (repo is public):
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `WG_CONFIG`
+- `KUBECONFIG`
 
-## Deploy on Vercel
+Local/K8s secret manifests (`secret.yaml`, kubeconfig files, WireGuard configs) are gitignored and **must not** be pushed to GitHub.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Architecture (high level)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```text
+src/
+  app/           # Next.js routes (public, dashboard, admin, API)
+  components/    # Shared UI
+  lib/           # env, db, config, shared utilities
+  modules/       # Domain modules (auth, company, qr, analytics, …)
+  types/         # Shared types / DTOs
+prisma/          # Schema + migrations + seed
+tests/           # Unit / integration tests
+scripts/         # Ops scripts (db check, …)
+```
+
+## Security notes
+
+- Secrets only via environment / secret store — never in source.
+- Public and admin DTOs are separated (later phases).
+- Multi-tenant isolation is enforced server-side.
+- Production seed is disabled.
+
+## Phases
+
+See `plan.md` for the full production roadmap (FAZ 0 → FAZ 12).
+
+## License
+
+Proprietary — all rights reserved.

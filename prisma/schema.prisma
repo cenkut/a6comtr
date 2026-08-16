@@ -1,0 +1,22 @@
+// A6.com.tr — Production schema foundation
+// Domain models grow phase-by-phase. FAZ 0: connectivity + baseline only.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// Lightweight schema version marker for connectivity / ops checks.
+model SchemaMeta {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("schema_meta")
+}

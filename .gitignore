@@ -1,5 +1,3 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
-
 # dependencies
 /node_modules
 /.pnp
@@ -23,6 +21,7 @@
 # misc
 .DS_Store
 *.pem
+*.log
 
 # debug
 npm-debug.log*
@@ -30,8 +29,31 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env & secrets — NEVER commit real credentials
+.env
+.env.*
+!.env.example
+!.env*.example
+secret.yaml
+secret.yml
+secrets.yaml
+secrets.yml
+**/secret.yaml
+**/secret.yml
+**/secrets.yaml
+**/secrets.yml
+*.secret.yaml
+*.secret.yml
+kubeconfig
+kubeconfig.*
+*.kubeconfig
+WG_CONFIG*
+wg-config*
+wg0.conf
+*.ovpn
+
+# Docker / local overrides
+docker-compose.override.yml
 
 # vercel
 .vercel
@@ -39,3 +61,23 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# IDE
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+
+# OS
+Thumbs.db
+
+# Prisma
+prisma/*.db
+prisma/*.db-journal
+
+# Uploads (local)
+/uploads
+/storage
+
+# Test artifacts
+/tmp

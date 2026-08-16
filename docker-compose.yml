@@ -1,0 +1,41 @@
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: a6-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: a6
+      POSTGRES_PASSWORD: a6_dev_password
+      POSTGRES_DB: a6
+    ports:
+      # Host 5433 avoids conflict with a local PostgreSQL on 5432.
+      - "5433:5432"
+    volumes:
+      - a6_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U a6 -d a6"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Optional: app service for production-like local runs
+  # Uncomment when using the Dockerfile end-to-end.
+  # app:
+  #   build:
+  #     context: .
+  #     dockerfile: Dockerfile
+  #   container_name: a6-app
+  #   restart: unless-stopped
+  #   ports:
+  #     - "3000:3000"
+  #   environment:
+  #     DATABASE_URL: postgresql://a6:a6_dev_password@db:5432/a6?schema=public
+  #     NODE_ENV: production
+  #     APP_URL: http://localhost:3000
+  #     SESSION_SECRET: ${SESSION_SECRET}
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+
+volumes:
+  a6_pgdata:
